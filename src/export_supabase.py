@@ -1,6 +1,5 @@
 """Read the demo Supabase source, save scoped CSVs, then run extraction."""
 
-import argparse
 import csv
 import json
 import os
@@ -12,9 +11,11 @@ from urllib.request import Request, urlopen
 from dotenv import load_dotenv
 
 if __package__:
-    from .extract import REQUIRED_COLUMNS, main as extract_main
+    from .extract import REQUIRED_COLUMNS, extract
+    from .run_log import LoggingParser, logged_run
 else:
-    from extract import REQUIRED_COLUMNS, main as extract_main
+    from extract import REQUIRED_COLUMNS, extract
+    from run_log import LoggingParser, logged_run
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -57,8 +58,8 @@ def fetch_table(url, key, table, columns):
     return records
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+def export(argv, run):
+    parser = LoggingParser(description=__doc__, run=run)
     parser.add_argument("--raw-dir", type=Path, default=PROJECT_ROOT / "data" / "raw")
     parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "output" / "extracted.json")
     args = parser.parse_args(argv)
@@ -93,10 +94,14 @@ def main(argv=None):
             print(f"Exported public.{table}: {len(rows)} rows")
     except (OSError, ValueError) as error:
         parser.exit(1, f"Export failed: {error}\n")
-    return extract_main([
+    return extract([
         "--bookings", str(paths["bookings"]),
         "--payments", str(paths["payments"]), "--output", str(args.output),
-    ])
+    ], run)
+
+
+def main(argv=None):
+    return logged_run(lambda run: export(argv, run))
 
 
 if __name__ == "__main__":
