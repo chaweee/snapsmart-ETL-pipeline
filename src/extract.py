@@ -56,14 +56,22 @@ def extract(argv, run):
             "payments": extract_csv(args.payments, REQUIRED_COLUMNS["payments"]),
         }
         run.records_read = sum(len(rows) for rows in extracted.values())
+        run.table_counts = {table: len(rows) for table, rows in extracted.items()}
         args.output.parent.mkdir(parents=True, exist_ok=True)
         with args.output.open("w", encoding="utf-8") as destination:
             json.dump(extracted, destination, ensure_ascii=False, indent=2)
             destination.write("\n")
+        batch_dir = args.output.parent / 'batches' / run.pipeline_run_id
+        batch_dir.mkdir(parents=True, exist_ok=False)
+        with (batch_dir / 'extracted.json').open('x', encoding='utf-8') as snapshot:
+            json.dump({'run_id': run.pipeline_run_id, 'extraction_started_utc': run.start_timestamp,
+                       'extraction_mode': 'full', 'records': extracted}, snapshot, ensure_ascii=False, indent=2)
+            snapshot.write('\n')
         run.records_extracted = run.records_read
     except (OSError, UnicodeError, csv.Error, ValueError) as error:
         parser.exit(1, f"Extraction failed: {error}\n")
     print(f"Extracted {len(extracted['bookings'])} bookings and {len(extracted['payments'])} payments -> {args.output}")
+    print(f"Batch ID: {run.pipeline_run_id}; snapshot: {batch_dir / 'extracted.json'}")
     return 0
 
 

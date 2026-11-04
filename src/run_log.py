@@ -19,6 +19,7 @@ class Run:
         self.records_extracted = 0
         self.records_rejected = 0
         self.error_message = ''
+        self.table_counts = {}
 
 
 class LoggingParser(argparse.ArgumentParser):
@@ -47,6 +48,15 @@ def log_run(run, status, path=LOG_PATH):
             status, run.records_read, run.records_extracted, run.records_rejected,
             run.error_message,
         ))
+        db.execute('''CREATE TABLE IF NOT EXISTS extraction_table_counts (
+            pipeline_run_id TEXT NOT NULL, table_name TEXT NOT NULL,
+            records_read INTEGER NOT NULL, records_extracted INTEGER NOT NULL,
+            PRIMARY KEY (pipeline_run_id, table_name)
+        )''')
+        db.executemany('INSERT INTO extraction_table_counts VALUES (?, ?, ?, ?)', [
+            (run.pipeline_run_id, name, count, count if status == 'success' else 0)
+            for name, count in run.table_counts.items()
+        ])
 
 
 def logged_run(operation):

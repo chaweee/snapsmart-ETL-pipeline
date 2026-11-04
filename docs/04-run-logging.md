@@ -15,6 +15,11 @@ before both are read, read is zero. Extraction has no row-level rejection:
 issue #3. Unexpected exception messages are not logged to avoid exposing
 secrets. Normal file and API errors are recorded without the server key.
 
+The `extraction_table_counts` table records counts by run ID and source table.
+Each successful run also creates `output/batches/<run_id>/extracted.json` as
+the Stage 2 handover. Transformation quality results are stored alongside that
+batch, rather than in the extraction run table. See `05-stage-1-and-2.md`.
+
 Logs are retained indefinitely, exceeding the 90-day minimum. Retention
 depends on keeping the local SQLite file and backups; deleting the file loses
 the audit history. A log write failure raises an error instead of silently

@@ -223,4 +223,5 @@ __marimo__/
 /data/raw/
 /output/*.json
 /output/*.csv
+/output/batches/
 /logs/*.sqlite3
