@@ -222,3 +222,4 @@ __marimo__/
 # Local pipeline inputs and extracted artifacts
 /data/raw/
 /output/*.json
+/output/*.csv
