@@ -1,5 +1,11 @@
 # Issue #1: Supabase ETL destination
 
+## Deployment status
+
+The project owner confirmed that the new Supabase project was created and
+both the source setup/seed scripts and destination migration were run
+successfully. Destination data loading is part of the later ETL issues.
+
 The new demo Supabase project contains both the source and destination:
 
 - `public`: capstone source tables populated using `demo/seed.sql`.
